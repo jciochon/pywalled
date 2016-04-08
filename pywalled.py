@@ -11,8 +11,8 @@ Options:
 -b BOARD, --board=BOARD       Which 4chan board to search. Accepts wg, hr, w, 7chan, all. [default: all]
 -r RES, --res=RES             Resolution. For multiple monitors use __. [default: any]
 -y STYLE, --style=STYLE       exact, larger, or aspect. [default: larger]
--f SFW                        Force a SFW search. Options are Unrated, SFW, borderline, NSFW, all. [default: all]
--s SEARCH, --search=SEARCH    Search type. Accepts search or random. [default: random]
+-f SFW                        Force a SFW search. Options are Unrated, SFW, borderline, NSFW, all. [default: sfw]
+-s SEARCH, --search=SEARCH    Search type. Accepts search or random. [default: search]
 """
 
 import os
@@ -113,7 +113,6 @@ def download_images(urls, tags):
 
 def main():
     args = docopt(__doc__)
-    print(args)
 
     tags = args['--tags'].split(',')
     board = args['--board']
@@ -123,7 +122,6 @@ def main():
     search = args['--search']
 
     url = build_url(tags, board, res, style, sfw, search)
-    print(url)
     show_links = get_show_links(url)
     image_links = get_image_links(show_links)
     download_images(image_links, '_'.join(tags))
