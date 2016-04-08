@@ -1,19 +1,19 @@
 
 """pywalled is a small scraping interface for 4walled.cc.
 
-Usage: pywalled.py (-t TAGS) [-b BOARD] [-r RES]
-                   [-t STYLE] [-f SFW] [-s SEARCH]
+Usage: pywalled.py (-t <TAGS>) [-b BOARD] [-r RES]
+                   [-y STYLE] [-f SFW] [-s SEARCH]
 
 Options:
 -h --help                     Show this message.
--t TAGS, --tags=TAGS          Keywords for search. For multiples, separate using comma with no space. Required.
--b BOARD, --board=BOARD       Which 4chan board to search. Accepts wg, hr, w, 7chan, all. Default is all
--r RES,--res=RES              Resolution. For multiple monitors use _
--t STYLE, --style=STYLE       exact, larger, or aspect. Default is larger.
--f SFW                        Force a SFW search. Options are Unrated, SFW, borderline, NSFW, all. Default all.
--s SEARCH, --search=SEARCH    Search type. Accepts search or random. Default is random.
+-t TAGS, --tags=<TAGS>        Keywords for search. For multiples, separate using comma with no space.
+                              Required.
+-b BOARD, --board=BOARD       Which 4chan board to search. Accepts wg, hr, w, 7chan, all. [default: all]
+-r RES, --res=RES             Resolution. For multiple monitors use __. [default: any]
+-y STYLE, --style=STYLE       exact, larger, or aspect. [default: larger]
+-f SFW                        Force a SFW search. Options are Unrated, SFW, borderline, NSFW, all. [default: all]
+-s SEARCH, --search=SEARCH    Search type. Accepts search or random. [default: random]
 """
-
 
 import os
 import requests
@@ -41,13 +41,13 @@ def build_url(tags, board, res, style, sfw, search):
         boardnum = 'board=&'
         print('Board not set, using default of \'All\'.')
 
-    if not res:
+    if res == 'any':
         res = 'width_aspect=&'
         print('Resolution not set, using default of \'Any\'.')
     else:
         res = 'width_aspect={}&'.format(res)
 
-    if not style:
+    if style == 'larger':
         style = 'searchstyle=larger&'
         print('Style not set, using default of \'Equal|Greater\'')
     else:
@@ -66,11 +66,11 @@ def build_url(tags, board, res, style, sfw, search):
         sfwnum = 'sfw=&'
         print('SFW not set, using default of \'All\'')
 
-    if not search:
+    if search == 'random':
         search = 'search=random'
+        print('Search style not set, using default of \'Random\'')
     else:
         search = 'search={}'.format(search)
-        print('Search style not set, using default of \'Random\'')
 
     url = '{}{}{}{}{}{}{}'.format(base_url, tags, boardnum, res, style, sfwnum, search)
     return url
@@ -113,16 +113,17 @@ def download_images(urls, tags):
 
 def main():
     args = docopt(__doc__)
-    # print(args)
+    print(args)
 
-    tags = args['TAGS'].split(',')
-    board = args['BOARD']
-    res = args['RES']
-    style = args['STYLE']
-    sfw = args['SFW']
-    search = args['SEARCH']
+    tags = args['--tags'].split(',')
+    board = args['--board']
+    res = args['--res']
+    style = args['--style']
+    sfw = args['-f']
+    search = args['--search']
 
     url = build_url(tags, board, res, style, sfw, search)
+    print(url)
     show_links = get_show_links(url)
     image_links = get_image_links(show_links)
     download_images(image_links, '_'.join(tags))
