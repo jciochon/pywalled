@@ -18,9 +18,9 @@ or on Windows:
 
 `$> py -m pip install docopt beautifulsoup4`
 
-And run using python:
+And run using your python installation:
 
-`$>python3.5 pywalled.py [options]`
+`$> python3.5 pywalled.py [options]`
 
 Usage
 ---
