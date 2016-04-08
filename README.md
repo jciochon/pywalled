@@ -6,13 +6,14 @@ Requirements
 - Python 3, pip3
 - Docopt 0.6.1
 - BeautifulSoup4
+- requests
 
 
 Installation
 ----
 You can use pip to install both docopt and beautifulsoup4:
 
-`$> pip3 install docopt beautifulsoup4`
+`$> pip3 install docopt beautifulsoup4 requests`
 
 or on Windows:
 
@@ -87,3 +88,10 @@ Downloading http://4walled.cc/src/9c/9ccf0ccb4c310d6108cf273f7d8e0b01.jpg to ima
 Downloading http://4walled.cc/src/96/96ff371d806a9bd2ee19f795212509f1.jpg to images/flowers_green_red-28.jpg...
 Downloading http://4walled.cc/src/63/63707d24a11bf45b34d3be1377cf9f41.jpg to images/flowers_green_red-29.jpg...
 ```
+
+Todo
+---
+- Add option for zipping images instead of dumping to folder
+- Add option for custom output folder
+- Add support for scrolling multiple pages
+- Fix file extensions >3 chars
