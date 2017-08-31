@@ -2,7 +2,7 @@
 """pywalled is a small scraping interface for 4walled.cc.
 
 Usage: pywalled.py (-t <TAGS>) [-b BOARD] [-r RES]
-                   [-y STYLE] [-f SFW] [-s SEARCH]
+                   [-y STYLE] [-f SFW] [-s SEARCH] [-z]
 
 Options:
 -h --help                     Show this message.
@@ -13,12 +13,14 @@ Options:
 -y STYLE, --style=STYLE       exact, larger, or aspect. [default: larger]
 -f SFW                        Force a SFW search. Options are Unrated, SFW, borderline, NSFW, all. [default: sfw]
 -s SEARCH, --search=SEARCH    Search type. Accepts search or random. [default: search]
+--zip=ZIP                     Compress downloaded images into an archive named ZIP.zip [default: pywalled_TAGS.zip]
 """
 
 import os
 import requests
 from bs4 import BeautifulSoup
 from docopt import docopt
+import zipfile
 
 
 def build_url(tags, board, res, style, sfw, search):
@@ -81,6 +83,7 @@ def get_show_links(url):
     soup = BeautifulSoup(r.text, 'html.parser')
     urls = []
 
+    # TODO: This is slow, can we optimize?
     for link in soup.find_all('a'):
         ref = link.get('href')
         if 'show-' in ref:
@@ -100,19 +103,46 @@ def get_image_links(urls):
     return image_links
 
 
-def download_images(urls, tags):
+def download_images(urls, tags, zip_name, compress=True):
     if not os.path.exists('./images'):
         os.mkdir('./images')
+
+    if compress:
+        if zip_name:
+            zip_file = zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED)
+        else:
+            # add zip name
+            zip_file = zipfile.ZipFile('', 'w', zipfile.ZIP_DEFLATED)
+
+    img_names = []
     for i, url in enumerate(urls):
         # this assumes 3-letter file extensions, may need fix if 4walled uses e.g. 'a.jpeg'
         filename = 'images/{}-{}.{}'.format(tags, i, url[-3:])
         print('Downloading {} to {}...'.format(url, filename))
+        img_names.append('{}: {}'.format(filename, url))
+
+        content = requests.get(url).content
         with open(filename, 'wb') as img:
-            img.write(requests.get(url).content)
+            img.write(content)
+            if compress:
+                zip_file.write(img)
+
+
+# this needs to be rolled into the download_images portion
+def zip_images(tags, num_images, zip_name):
+    if not zip_name:
+        zip_name = 'pywalleda_{}'.format(tags)
+    zip_file = zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED)
+
+    for image in range(num_images):
+        zip_file.write(image)
 
 
 def main():
+    # write image links out to textfile with tags for archiving
+
     args = docopt(__doc__)
+    print(args)
 
     tags = args['--tags'].split(',')
     board = args['--board']
@@ -124,8 +154,28 @@ def main():
     url = build_url(tags, board, res, style, sfw, search)
     show_links = get_show_links(url)
     image_links = get_image_links(show_links)
-    download_images(image_links, '_'.join(tags))
+    # download_images(image_links, '_'.join(tags))
+
+    if args['--zip']:
+        print("files will be zipped.")
 
 
 if __name__ == '__main__':
     main()
+
+# below is how 4walled does scroll-loading
+#
+# function checkScroll(initial) {
+#     if(($(window).scrollTop() > $(document).height()-$(window).height()-10 || $(window).height() >= $(document).height()) && !loading) {
+#         loading = true;
+#         $("#loading").css("display", "block")
+#         $.get('results.php?search=search&board=&width_aspect=&tags=flowers&searchstyle=larger&sfw=&offset=' + (30 + checkScroll.count) , function(data){
+#             $("#imageList").append(data)
+#             $("#loading").css("display", "none")
+#             checkScroll.count += 30;
+#             if (data.indexOf("This is the end of the internet!") == -1) {
+#                 loading = false;
+#             }
+#         });
+#     }
+# }
